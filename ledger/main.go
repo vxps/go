@@ -25,6 +25,12 @@ func main() {
 
 	fmt.Println("Budgets loaded:")
 	for category, budget := range budgets {
+
+		if err := CheckValid(&budget); err != nil {
+			fmt.Printf("Invalid budget: %v\n", err)
+			continue
+		}
+
 		fmt.Printf(
 			"%s: limit=%d, period=%s\n",
 			category,
@@ -63,6 +69,10 @@ func main() {
 	}
 
 	for _, tx := range testTransactions {
+
+		err2 := CheckValid(&tx)
+		fmt.Print(err2)
+
 		err := AddTransaction(tx)
 
 		if errors.Is(err, ErrBudgetExceeded) {

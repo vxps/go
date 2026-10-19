@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"slices"
 )
 
@@ -18,8 +19,9 @@ type Transaction struct {
 var transactions = make([]Transaction, 0)
 
 func AddTransaction(tx Transaction) error {
-	if tx.Amount == 0 {
-		return errors.New("transaction amount cannot be zero")
+	err := (&tx).Validate()
+	if err != nil {
+		return fmt.Errorf("invalid transaction: %w", err)
 	}
 
 	if budget, ok := budgets[tx.Category]; ok {

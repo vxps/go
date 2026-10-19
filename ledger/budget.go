@@ -14,8 +14,12 @@ type Budget struct {
 
 var budgets = make(map[string]Budget)
 
-func SetBudget(b Budget) {
+func SetBudget(b Budget) error {
+	if err := b.Validate(); err != nil {
+		return fmt.Errorf("invalid budget: %w", err)
+	}
 	budgets[b.Category] = b
+	return nil
 }
 
 func LoadBudgets(r io.Reader) error {
@@ -28,18 +32,13 @@ func LoadBudgets(r io.Reader) error {
 	}
 
 	for _, budget := range loadedBudgets {
-		if budget.Category == "" {
-			return fmt.Errorf("budget category cannot be empty")
-		}
-
-		if budget.Limit <= 0 {
+		if err := SetBudget(budget); err != nil {
 			return fmt.Errorf(
-				"budget limit for category %q must be positive",
+				"failed to load budget for category %q: %w",
 				budget.Category,
+				err,
 			)
 		}
-
-		SetBudget(budget)
 	}
 
 	return nil
