@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"ledger"
 	"log"
 	"os"
 )
@@ -19,14 +20,16 @@ func main() {
 
 	reader := bufio.NewReader(file)
 
-	if err := LoadBudgets(reader); err != nil {
+	if err := ledger.LoadBudgets(reader); err != nil {
 		log.Fatalf("failed to load budgets: %v", err)
 	}
+
+	budgets := ledger.GetBudgets()
 
 	fmt.Println("Budgets loaded:")
 	for category, budget := range budgets {
 
-		if err := CheckValid(&budget); err != nil {
+		if err := ledger.CheckValid(&budget); err != nil {
 			fmt.Printf("Invalid budget: %v\n", err)
 			continue
 		}
@@ -41,7 +44,7 @@ func main() {
 
 	fmt.Println()
 
-	testTransactions := []Transaction{
+	testTransactions := []ledger.Transaction{
 		{
 			Amount:      1500,
 			Category:    "food",
@@ -70,12 +73,12 @@ func main() {
 
 	for _, tx := range testTransactions {
 
-		err2 := CheckValid(&tx)
+		err2 := ledger.CheckValid(&tx)
 		fmt.Print(err2)
 
-		err := AddTransaction(tx)
+		_, err := ledger.AddTransaction(tx)
 
-		if errors.Is(err, ErrBudgetExceeded) {
+		if errors.Is(err, ledger.ErrBudgetExceeded) {
 			fmt.Printf(
 				"Transaction rejected: category=%s amount=%d: %v\n",
 				tx.Category,
@@ -103,7 +106,7 @@ func main() {
 	fmt.Println()
 	fmt.Println("Saved transactions:")
 
-	for _, tx := range ListTransactions() {
+	for _, tx := range ledger.ListTransactions() {
 		fmt.Printf(
 			"ID=%d Amount=%d Category=%s Description=%s Date=%s\n",
 			tx.ID,

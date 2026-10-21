@@ -8,20 +8,16 @@
 cd gateway
 go run .
 ```
+API
+GET /api/budgets - Получение списка бюджетов
 
-Gateway запустится на порту `8080`.
+POST /api/budgets - Создание бюджета
 
-Проверка:
+GET /api/transactions - Получение списка транзакций
 
-```bash
-curl http://localhost:8080/ping
-```
+POST /api/transactions - Создание транзакции
 
-Ожидаемый ответ:
-
-```text
-pong
-```
+```curl http://localhost:8080/api/budgets```
 
 ### Ledger
 

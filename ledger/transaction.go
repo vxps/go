@@ -1,4 +1,4 @@
-package main
+package ledger
 
 import (
 	"errors"
@@ -18,17 +18,17 @@ type Transaction struct {
 
 var transactions = make([]Transaction, 0)
 
-func AddTransaction(tx Transaction) error {
-	err := (&tx).Validate()
+func AddTransaction(tx Transaction) (Transaction, error) {
+	err := CheckValid(&tx)
 	if err != nil {
-		return fmt.Errorf("invalid transaction: %w", err)
+		return Transaction{}, fmt.Errorf("invalid transaction: %w", err)
 	}
 
 	if budget, ok := budgets[tx.Category]; ok {
 		currentSpent := sumByCategory(tx.Category)
 
 		if currentSpent+tx.Amount > budget.Limit {
-			return ErrBudgetExceeded
+			return Transaction{}, ErrBudgetExceeded
 		}
 	}
 
@@ -38,7 +38,7 @@ func AddTransaction(tx Transaction) error {
 
 	transactions = append(transactions, tx)
 
-	return nil
+	return tx, nil
 }
 
 func ListTransactions() []Transaction {

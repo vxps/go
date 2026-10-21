@@ -1,9 +1,10 @@
-package main
+package ledger
 
 import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"maps"
 )
 
 type Budget struct {
@@ -14,8 +15,12 @@ type Budget struct {
 
 var budgets = make(map[string]Budget)
 
+func GetBudgets() map[string]Budget {
+	return maps.Clone(budgets)
+}
+
 func SetBudget(b Budget) error {
-	if err := b.Validate(); err != nil {
+	if err := CheckValid(&b); err != nil {
 		return fmt.Errorf("invalid budget: %w", err)
 	}
 	budgets[b.Category] = b
