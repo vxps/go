@@ -1,0 +1,251 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>api: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">gateway/api/controller.go (85.2%)</option>
+				
+				<option value="file1">gateway/mapper/mapper.go (100.0%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package api
+
+import (
+        "encoding/json"
+        "errors"
+        "gateway/mapper"
+        "gateway/models"
+        "ledger"
+        "log"
+        "net/http"
+)
+
+func GetBudgets(w http.ResponseWriter, r *http.Request) {
+        <span class="cov8" title="1">budgets := ledger.GetBudgets()
+        response := make([]models.BudgetResponse, 0, len(budgets))
+        for _, budget := range budgets </span>{
+                <span class="cov8" title="1">response = append(response, mapper.ToBudgetResponse(budget))
+</span>        }
+
+        <span class="cov8" title="1">w.Header().Set("Content-Type", "application/json; charset=utf-8")
+        err := json.NewEncoder(w).Encode(response)
+        if err != nil </span>{
+                <span class="cov0" title="0">log.Printf("failed to encode response: %v", err)
+</span>        }
+
+}
+
+func SetBudget(w http.ResponseWriter, r *http.Request) {
+        <span class="cov8" title="1">var request models.CreateBudgetRequest
+        err := json.NewDecoder(r.Body).Decode(&amp;request)
+        if err != nil </span>{
+                <span class="cov8" title="1">log.Printf("failed to decode request: %v", err)
+                WriteJsonError(w, http.StatusBadRequest, "invalid request body")
+                return
+</span>        }
+
+        <span class="cov8" title="1">model := mapper.ToBudgetDomain(request)
+        err = ledger.SetBudget(model)
+        if err != nil </span>{
+                <span class="cov0" title="0">log.Printf("failed to set budget: %v", err)
+                WriteJsonError(w, http.StatusBadRequest, "invalid budget data")
+                return
+</span>        }
+
+        <span class="cov8" title="1">w.Header().Set("Content-Type", "application/json; charset=utf-8")
+        w.WriteHeader(http.StatusCreated)
+</span>
+        <span class="cov8" title="1">err = json.NewEncoder(w).Encode(mapper.ToBudgetResponse(model))
+        if err != nil </span>{
+                <span class="cov0" title="0">log.Printf("failed to encode response: %v", err)
+</span>        }
+}
+
+func GetTransaction(w http.ResponseWriter, r *http.Request) {
+
+        <span class="cov8" title="1">transactions := ledger.ListTransactions()
+        response := make([]models.TransactionResponse, 0, len(transactions))
+        for _, tr := range transactions </span>{
+                <span class="cov8" title="1">response = append(response, mapper.ToTransactionResponse(tr))
+</span>        }
+
+        <span class="cov8" title="1">w.Header().Set("Content-Type", "application/json; charset=utf-8")
+        err := json.NewEncoder(w).Encode(response)
+        if err != nil </span>{
+                <span class="cov0" title="0">log.Printf("failed to encode response: %v", err)
+</span>        }
+}
+
+func SetTransaction(w http.ResponseWriter, r *http.Request) {
+        <span class="cov8" title="1">var request models.CreateTransactionRequest
+        err := json.NewDecoder(r.Body).Decode(&amp;request)
+        if err != nil </span>{
+                <span class="cov8" title="1">log.Printf("failed to decode request: %v", err)
+                WriteJsonError(w, http.StatusBadRequest, "invalid request body")
+                return
+</span>        }
+
+        <span class="cov8" title="1">model := mapper.ToTransactionDomain(request)
+        created, err := ledger.AddTransaction(model)
+        if err != nil </span>{
+                <span class="cov8" title="1">log.Printf("failed to add transaction: %v", err)
+                if errors.Is(err, ledger.ErrBudgetExceeded) </span>{
+                        <span class="cov8" title="1">WriteJsonError(w, http.StatusConflict, "budget exceeded for category")
+</span>                } else {
+                        <span class="cov0" title="0">WriteJsonError(w, http.StatusBadRequest, "invalid transaction data")
+</span>                }
+                <span class="cov8" title="1">return</span>
+        }
+        <span class="cov8" title="1">w.Header().Set("Content-Type", "application/json; charset=utf-8")
+        w.WriteHeader(http.StatusCreated)
+        err = json.NewEncoder(w).Encode(mapper.ToTransactionResponse(created))
+        if err != nil </span>{
+                <span class="cov0" title="0">log.Printf("failed to encode response: %v", err)
+</span>        }
+}
+
+func WriteJsonError(w http.ResponseWriter, status int, message string) {
+        <span class="cov8" title="1">w.Header().Set("Content-Type", "application/json; charset=utf-8")
+        w.WriteHeader(status)
+        err := json.NewEncoder(w).Encode(map[string]string{"error": message})
+        if err != nil </span>{
+                <span class="cov0" title="0">log.Printf("failed to encode error response: %v", err)
+</span>        }
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package mapper
+
+import (
+        "gateway/models"
+        "ledger"
+)
+
+func ToTransactionDomain(r models.CreateTransactionRequest) ledger.Transaction {
+        <span class="cov8" title="1">return ledger.Transaction{
+                Amount:      r.Amount,
+                Category:    r.Category,
+                Description: r.Description,
+                Date:        r.Date,
+</span>        }
+}
+
+func ToBudgetDomain(r models.CreateBudgetRequest) ledger.Budget {
+        <span class="cov8" title="1">return ledger.Budget{
+                Category: r.Category,
+                Limit:    r.Limit,
+                Period:   r.Period,
+</span>        }
+}
+
+func ToTransactionResponse(tx ledger.Transaction) models.TransactionResponse {
+        <span class="cov8" title="1">return models.TransactionResponse{
+                ID:          tx.ID,
+                Amount:      tx.Amount,
+                Category:    tx.Category,
+                Description: tx.Description,
+                Date:        tx.Date,
+</span>        }
+}
+
+func ToBudgetResponse(b ledger.Budget) models.BudgetResponse {
+        <span class="cov8" title="1">return models.BudgetResponse{
+                Category: b.Category,
+                Limit:    b.Limit,
+</span>        }
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>

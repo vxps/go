@@ -56,3 +56,8 @@ func sumByCategory(category string) int {
 
 	return total
 }
+
+func Reset() {
+	budgets = make(map[string]Budget)
+	transactions = make([]Transaction, 0)
+}
